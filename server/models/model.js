@@ -66,6 +66,7 @@ class Model {
    * during the query.
    */
   create(options) {
+    // {hash: 3429834293849, user: username, userid: userid}
     let queryString = `INSERT INTO ${this.tablename} SET ?`;
     return executeQuery(queryString, options);
   }

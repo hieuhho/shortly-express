@@ -11,10 +11,20 @@ const parseCookies = (req, res, next) => {
   // check if it even has a cookie
   if (!req.headers.cookie) {
 
-    // req.cookies = {};
+    req.cookies = {};
 
     // initialize a new session, store cookie with the response with name and HASH from session...
   } else {
+
+    // console.log(' request header cookie \n \
+    //                                     \n \
+    //                                     \
+    //                                     '
+    // , req.headers.cookie, ' \n \
+    // \n \
+    // \
+    // ');
+
 
     var cookiesArray = req.headers.cookie.split('; ');
 

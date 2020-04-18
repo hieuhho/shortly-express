@@ -2,41 +2,78 @@ const models = require('../models');
 const Promise = require('bluebird');
 
 module.exports.createSession = (req, res, next) => {
+  // .resolve(req.cookies)
 
-  if (req.cookies !== undefined) {
+  // cookie exists here
 
-    next();
+  // if session does not exist
+  //   do something else
 
-  } else {
+  if (req.cookies.shortlyid) {
+    let hash = req.cookies.shortlyid;
+    return models.Sessions.get({ hash: req.cookies.shortlyid})
+      .then((session) => {
+        console.log('session: ', session);
+        req.session = session;
+        next();
+      })
+      .catch ((err) => {
+        return models.Sessions.create()
+          .then((newSession) => {
 
-    // if no cookies present. create a session...
-
-    return models.Sessions.create()
-      .then((result) => {
-
-        return models.Sessions.get({ id: result.insertId})
-          .then((result) => {
-            req.cookie = req.body.username + '=' + result.hash;
-            return res.cookie(req.body.username, result.hash);
-          })
-          .then((whatisthis) => {
-            // console.log(res === whatisthis );
-            next();
+            return models.Sessions.get({id: newSession.insertId})
+              .then ((session) => {
+                res.cookie('shortlyid', session.hash);
+                // req.cookies('shortlyid', session.hash);
+                req.session = session;
+                next();
+              });
           });
-      });
 
+      });
   }
 
 
-  // console.log('res: ', req);
+  return models.Sessions.get({ hash: req.cookies.shortlyid})
+    .then((err, result) => {
+      // return res.cookie(req.body.username, result.hash);
+      // console.log('result: ', result);
+      res.cookie('shortlyid', result.hash);
+      return result;
+    })
+    .then((session) => {
+      req.session = session;
+      next();
+    })
 
+    .catch((err)=> {
 
-  // var key = req.body.username;
+      // what if the body has no username or password
 
-  // req.cookies[key] = hash;
+      return models.Users.get({username: req.body.username})
+        .then ((user) => {
 
-  // req.cookie = 'hey im a cookie';
-  // console.log('hey from create session');
+          var options = {user: {username: req.body.username}, userId: user.id};
+
+          return models.Sessions.create(options);
+        })
+        .catch ( (err) => {
+          return models.Sessions.create();
+        });
+
+    })
+    .then((result) => {
+      return models.Sessions.get( { id: result.insertId} )
+        .then((session) => {
+          res.cookie('shortlyid', session.hash);
+          return session;
+        });
+    })
+    .then((session) => {
+      req.session = session;
+      next();
+    });
+
 
 
 };
