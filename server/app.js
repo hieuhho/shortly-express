@@ -19,17 +19,17 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use(cookieParser);
 app.use(Auth.createSession);
 
-app.get('/',
+app.get('/', Auth.verifySession,
   (req, res, next) => {
     res.render('index');
   });
 
-app.get('/create',
+app.get('/create', Auth.verifySession,
   (req, res) => {
     res.render('index');
   });
 
-app.get('/links',
+app.get('/links', Auth.verifySession,
   (req, res, next) => {
     models.Links.getAll()
       .then(links => {
@@ -40,7 +40,7 @@ app.get('/links',
       });
   });
 
-app.post('/links',
+app.post('/links', Auth.verifySession,
   (req, res, next) => {
     var url = req.body.url;
     if (!models.Links.isValidUrl(url)) {
@@ -100,14 +100,9 @@ app.post('/login', (req, res, next) => {
         let attempted = req.body.password;
         let hashedPassword = results.password;
         let salt = results.salt;
-
-
         if (models.Users.compare(attempted, hashedPassword, salt)) {
-
           res.status(200).redirect('/');
-
         } else {
-
           res.status(400).redirect('/login');
         }
 
@@ -122,18 +117,36 @@ app.post('/login', (req, res, next) => {
 
 app.post('/signup', (req, res, next) => {
 
-  return models.Users.create({ username: req.body.username, password: req.body.password })
-    .then((results) => {
-      if (results) {
-        res.status(201).redirect('/');
+  return models.Users.get({username: req.body.username})
+    .then((user) => {
+      if (user) {
+        throw user;
       }
+      return models.Users.create({ username: req.body.username, password: req.body.password });
     })
-    .catch((err) => {
-      if (err.code === 'ER_DUP_ENTRY') {
-        res.status(406).redirect('/signup');
-      }
+    .then((results) => {
+      return models.Sessions.update({hash: req.session.hash}, {userID: results.insertId});
+    })
+    .then(() => {
+      res.status(201).redirect('/');
+    })
+    .catch((user) => {
+      res.status(406).redirect('/signup');
     });
 });
+
+app.get('/logout', (req, res, next) => {
+
+  return models.Sessions.delete({ hash: req.cookies.shortlyid })
+    .then(() => {
+      res.clearCookie('shortlyid');
+      res.redirect('/login');
+    })
+    .error(error => {
+      res.status(500).send(error);
+    });
+});
+
 
 
 /************************************************************/
