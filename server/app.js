@@ -5,6 +5,7 @@ const partials = require('express-partials');
 const bodyParser = require('body-parser');
 const Auth = require('./middleware/auth');
 const models = require('./models');
+const cookieParser = require('./middleware/cookieParser');
 
 const app = express();
 
@@ -15,8 +16,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 
+app.use(cookieParser);
+
 app.get('/',
-  (req, res) => {
+  (req, res, next) => {
     res.render('index');
   });
 
@@ -78,12 +81,12 @@ app.post('/links',
 var router = require('express').Router();
 
 app.get('/login',
-  (req, res) => {
+  (req, res, next) => {
     res.render('login.ejs');
   });
 
 app.get('/signup',
-  (req, res) => {
+  (req, res, next) => {
     res.render('signup.ejs');
   });
 app.post('/login', (req, res, next) => {
