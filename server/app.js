@@ -17,6 +17,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 
 app.use(cookieParser);
+app.use(Auth.createSession);
 
 app.get('/',
   (req, res, next) => {
@@ -91,17 +92,31 @@ app.get('/signup',
   });
 app.post('/login', (req, res, next) => {
   return models.Users.get({ username: req.body.username })
+
     .then((results) => {
+
       if (results) {
+
         let attempted = req.body.password;
         let hashedPassword = results.password;
         let salt = results.salt;
+
+
         if (models.Users.compare(attempted, hashedPassword, salt)) {
+
           res.status(200).redirect('/');
+
         } else {
-          res.status(401).redirect('/login');
+
+          res.status(400).redirect('/login');
         }
+
+      } else {
+
+        res.status(400).redirect('/login');
       }
+
+      next();
     });
 });
 

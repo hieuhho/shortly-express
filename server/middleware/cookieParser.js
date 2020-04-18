@@ -1,3 +1,5 @@
+// require session
+
 const parseCookies = (req, res, next) => {
 
   // function that will access the cookies on an incoming request, parse them into an object, and assign this object to a cookies property on the request.
@@ -9,10 +11,9 @@ const parseCookies = (req, res, next) => {
   // check if it even has a cookie
   if (!req.headers.cookie) {
 
-    req.cookies = {};
+    // req.cookies = {};
 
-    // initialize a new session, store cookie with name and HASH from session...
-
+    // initialize a new session, store cookie with the response with name and HASH from session...
   } else {
 
     var cookiesArray = req.headers.cookie.split('; ');
@@ -26,6 +27,7 @@ const parseCookies = (req, res, next) => {
 
     req.cookies = cookiesObject;
   }
+
   next();
 
 };
