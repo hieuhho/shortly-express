@@ -26,6 +26,20 @@ npm install
 
 To install MySQL, please follow these [instructions](https://dev.mysql.com/doc/refman/8.0/en/linux-installation.html)
 
+### Start Server
+
+```
+npm start
+```
+
+### Running the tests
+
+This repo uses Mocha and Chai to run its test. To start:
+
+```
+npm test
+```
+
 ## Built With
 
 * [node.js](https://nodejs.org/en/)
